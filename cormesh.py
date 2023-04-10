@@ -15,7 +15,7 @@ import os
 import os.path
 from math import ceil
 
-def cormesh(lavender_file: str, max_cell_height: float) -> str:
+def cormesh(lavender_file: str, max_cell_height: float, num_float: int) -> str:
     if not os.path.exists(lavender_file) or not os.path.isfile(lavender_file):
         raise RuntimeError(f'{lavender_file} does not exist or is not a file.')
     
@@ -53,10 +53,11 @@ def cormesh(lavender_file: str, max_cell_height: float) -> str:
         for _ in range(factor):
             height_layer_dense.append(height_dense)
 
+
     trg_path = os.path.join(os.path.split(lavender_file)[0], 'lavender_mesh{:.1f}'.format(max_cell_height))
     if not os.path.exists(trg_path):
         os.mkdir(trg_path)
-
+    
     trg_file = os.path.join(trg_path, 'lavender.inp')
     with open(lavender_file, 'r', encoding='utf-8') as src:
         with open(trg_file, 'w', encoding='utf-8') as trg:
@@ -66,7 +67,7 @@ def cormesh(lavender_file: str, max_cell_height: float) -> str:
                     trg.write('{:<16}'.format('layer'))
                     trg.write('{:<16d}'.format(len(height_layer_dense)))
                     # trg.write(' '.join(map('{:.4f}'.format, height_layer_dense)))
-                    trg.write(print_list(height_layer_dense))
+                    trg.write(print_list(height_layer_dense, num_float))
                     trg.write('\n')
                     continue
 
@@ -96,7 +97,7 @@ def cormesh(lavender_file: str, max_cell_height: float) -> str:
     print('Result output to [{}]'.format(trg_file))
 
 
-def print_list(ls: list) -> str:
+def print_list(ls: list, num_float: int) -> str:
     if len(ls) == 0:
         return str()
     
@@ -109,14 +110,14 @@ def print_list(ls: list) -> str:
             cnt += 1
             continue
         if cnt == 1:
-            slist.append('{:.4f}'.format(prev))
+            slist.append(f'{round(prev, num_float)}')
         else:
-            slist.append('{:d}*{:.4f}'.format(cnt, prev))
+            slist.append(f'{cnt}*{round(prev, num_float)}')
         prev = elem
         cnt = 1
     
     # Do not forget the last one
-    slist.append('{:.4f}'.format(prev))
+    slist.append(f'{round(prev, num_float)}')
     
     return ' '.join(slist)
 
@@ -126,5 +127,6 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--file', default=os.path.join(os.getcwd(), 'lavender.inp'), type=str)
     parser.add_argument('--height', default=0.1, type=float)
+    parser.add_argument('--digit', default=3, type=int)
     args = parser.parse_args()
-    cormesh(lavender_file=args.file, max_cell_height=args.height)
+    cormesh(lavender_file=args.file, max_cell_height=args.height, num_float=args.digit)
